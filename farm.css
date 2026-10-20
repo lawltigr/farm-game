@@ -23,3 +23,14 @@ body{
     justify-content: center;
     cursor: pointer;
 }
+
+.plot.ready{
+    border-color: gold;
+    animation: jump 0.8s infinite;
+}
+
+@keyframes jump {
+    50%{
+        transform: translateY(-5px);
+    }
+}

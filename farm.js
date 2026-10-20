@@ -1,22 +1,50 @@
 const state = {
+    coins: 0,
     plots: [null, null, null, null, null, null, null, null, null, null, null, null]
 };
 const fieldEl = document.getElementById('field');
+const GROW_TIME = 10;
+
+function timeLeft(plot){
+    const passed = (Date.now() - plot.plantedAt) / 1000;
+    return GROW_TIME - passed;
+}
 
 function render(){
     fieldEl.innerHTML = '';
     state.plots.forEach((plot, i) =>{
         const el = document.createElement('div');
+        const timer = document.createElement('p');
+        timer.className = 'timer';
+        timer.textContent = "Time left " + timeLeft(plot);
         el.className = 'plot';
-        el.textContent = plot ? '🌱' : '';
+
+        if (plot){
+            const left = timeLeft(plot);
+
+            if (left <= 0) {
+                el.textContent = '🌾';
+                el.classList.add('ready');
+            } else{
+                el.textContent = left > GROW_TIME / 2 ? '🌱' : '🌿';
+                el.title = 'Time left ' + Math.ceil(left) + 's';
+            }
+        }
         el.onclick = () => tapPlot(i);
         fieldEl.appendChild(el);
+        fieldEl.appendChild(timer);
     });
 }
 
 function tapPlot(i){
-    state.plots[i] = state.plots[i] ? null : { planted: true};
+    const plot = state.plots[i];
+    if (!plot){
+        state.plots[i] = { plantedAt: Date.now() };
+    } else if (timeLeft(plot) <= 0){
+        state.plots[i] = null;
+        state.coins += 2;
+    }
     render();
 }
 
-render();
+setInterval(render, 1000);
