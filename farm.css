@@ -1,0 +1,25 @@
+body{
+    background: #8fd16a;
+    font-family: system-ui, sans-serif;
+    text-align: center;
+}
+
+#field{
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    gap: 8px;
+    justify-content: center;
+}
+
+.plot{
+    width: 100px;
+    height: 100px;
+    background: #8a5a33;
+    border: 3px solid #6d4526;
+    border-radius: 12px;
+    font-size: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
