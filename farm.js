@@ -1,14 +1,19 @@
 const state = {
-    coins: 0,
+    coins: 20,
     selected: 'carrot',
     plots: [null, null, null, null, null, null, null, null, null, null, null, null]
 };
 const fieldEl = document.getElementById('field');
 const CROPS = {
-    wheat: { name: 'Wheat', emoji: '🌾', time: 10, price: 2 },
-    corn: { name: "Corn", emoji: '🌽', time: 20, price: 5 },
-    carrot: { name: 'Carrot', emoji: '🥕', time: 30, price: 8 },
+    wheat: { name: 'Wheat', emoji: '🌾', time: 10, price: 2, seedCost: 1 },
+    corn: { name: "Corn", emoji: '🌽', time: 20, price: 5, seedCost: 2 },
+    carrot: { name: 'Carrot', emoji: '🥕', time: 30, price: 8, seedCost: 3 },
 };
+
+function selectSeed(key){
+    state.selected = key;
+    render();
+}
 
 function timeLeft(plot){
     const crop = CROPS[plot.crop]; 
@@ -16,6 +21,13 @@ function timeLeft(plot){
 }
 
 function render(){
+    document.getElementById('seeds').innerHTML = Object.entries(CROPS).map(([key, c]) =>
+    `
+        <div class="seed ${state.selected === key ? 'sel' : ''}" onclick="selectSeed('${key}')">
+            ${c.emoji} ${c.name} <br>
+            <small>${c.seedCost}🪙 ; ${c.time}s</small>
+        </div>
+    `).join('');
     fieldEl.innerHTML = ``;
     state.plots.forEach((plot, i) =>{
         const el = document.createElement('div');
@@ -47,6 +59,9 @@ function render(){
 function tapPlot(i){
     const plot = state.plots[i];
     if (!plot){
+        const crop = CROPS[state.selected];
+        if (state.coins < crop.seedCost) return;
+        state.coins -= crop.seedCost;
         state.plots[i] = { crop: state.selected, plantedAt: Date.now() };
     } else if (timeLeft(plot) <= 0){
         state.plots[i] = null;
