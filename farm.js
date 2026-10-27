@@ -11,28 +11,32 @@ function timeLeft(plot){
 }
 
 function render(){
-    fieldEl.innerHTML = '';
+    fieldEl.innerHTML = ``;
     state.plots.forEach((plot, i) =>{
         const el = document.createElement('div');
-        const timer = document.createElement('p');
-        timer.className = 'timer';
-        timer.textContent = "Time left " + timeLeft(plot);
+        // const timer = document.createElement('small');
         el.className = 'plot';
+        // timer.className = 'timer';
+        el.innerHTML=`
+        <div class="plant"></div>
+        <small>timer</small>
+        `;
 
         if (plot){
             const left = timeLeft(plot);
 
             if (left <= 0) {
-                el.textContent = '🌾';
+                el.plant.textContent = '🌾';
                 el.classList.add('ready');
             } else{
-                el.textContent = left > GROW_TIME / 2 ? '🌱' : '🌿';
+                el.plant.textContent = left > GROW_TIME / 2 ? '🌱' : '🌿';
                 el.title = 'Time left ' + Math.ceil(left) + 's';
+                // timer.textContent = Math.ceil(timeLeft(plot));
             }
         }
         el.onclick = () => tapPlot(i);
         fieldEl.appendChild(el);
-        fieldEl.appendChild(timer);
+        // fieldEl.appendChild(timer);
     });
 }
 
@@ -46,5 +50,6 @@ function tapPlot(i){
     }
     render();
 }
+
 
 setInterval(render, 1000);
