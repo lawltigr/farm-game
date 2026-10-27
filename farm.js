@@ -1,13 +1,18 @@
 const state = {
     coins: 0,
+    selected: 'carrot',
     plots: [null, null, null, null, null, null, null, null, null, null, null, null]
 };
 const fieldEl = document.getElementById('field');
-const GROW_TIME = 10;
+const CROPS = {
+    wheat: { name: 'Wheat', emoji: '🌾', time: 10, price: 2 },
+    corn: { name: "Corn", emoji: '🌽', time: 20, price: 5 },
+    carrot: { name: 'Carrot', emoji: '🥕', time: 30, price: 8 },
+};
 
 function timeLeft(plot){
-    const passed = (Date.now() - plot.plantedAt) / 1000;
-    return GROW_TIME - passed;
+    const crop = CROPS[plot.crop]; 
+    return crop.time - (Date.now() - plot.plantedAt) / 1000;
 }
 
 function render(){
@@ -24,10 +29,10 @@ function render(){
             const left = timeLeft(plot);
 
             if (left <= 0) {
-                plant.textContent = '🌾';
+                plant.textContent = CROPS[plot.crop].emoji;
                 el.classList.add('ready');
             } else{
-                plant.textContent = left > GROW_TIME / 2 ? '🌱' : '🌿';
+                plant.textContent = left > CROPS[plot.crop].time / 2 ? '🌱' : '🌿';
                 timer.textContent = Math.ceil(left) + "s";
                 el.title = Math.ceil(left) + "s Left";
             }
@@ -42,10 +47,10 @@ function render(){
 function tapPlot(i){
     const plot = state.plots[i];
     if (!plot){
-        state.plots[i] = { plantedAt: Date.now() };
+        state.plots[i] = { crop: state.selected, plantedAt: Date.now() };
     } else if (timeLeft(plot) <= 0){
         state.plots[i] = null;
-        state.coins += 2;
+        state.coins += CROPS[plot.crop].price;
     }
     render();
 }
