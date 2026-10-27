@@ -14,29 +14,28 @@ function render(){
     fieldEl.innerHTML = ``;
     state.plots.forEach((plot, i) =>{
         const el = document.createElement('div');
-        // const timer = document.createElement('small');
+        const plant = document.createElement('div');
+        const timer = document.createElement('small');
         el.className = 'plot';
-        // timer.className = 'timer';
-        el.innerHTML=`
-        <div class="plant"></div>
-        <small>timer</small>
-        `;
+        timer.className = 'timer';
+        plant.className = 'plant';
 
         if (plot){
             const left = timeLeft(plot);
 
             if (left <= 0) {
-                el.plant.textContent = '🌾';
+                plant.textContent = '🌾';
                 el.classList.add('ready');
             } else{
-                el.plant.textContent = left > GROW_TIME / 2 ? '🌱' : '🌿';
-                el.title = 'Time left ' + Math.ceil(left) + 's';
-                // timer.textContent = Math.ceil(timeLeft(plot));
+                plant.textContent = left > GROW_TIME / 2 ? '🌱' : '🌿';
+                timer.textContent = Math.ceil(left) + "s";
+                el.title = Math.ceil(left) + "s Left";
             }
         }
+        el.appendChild(plant);
+        if (timer.textContent) el.appendChild(timer);
         el.onclick = () => tapPlot(i);
         fieldEl.appendChild(el);
-        // fieldEl.appendChild(timer);
     });
 }
 
