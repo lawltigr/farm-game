@@ -1,6 +1,8 @@
 const state = {
     coins: 20,
     selected: 'carrot',
+    items: {},
+    capacity: 10,
     plots: [null, null, null, null, null, null, null, null, null, null, null, null]
 };
 const fieldEl = document.getElementById('field');
@@ -13,6 +15,16 @@ const CROPS = {
 function selectSeed(key){
     state.selected = key;
     render();
+}
+
+function stored(){
+    return Object.values(state.items).reduce((a,b) => a+b, 0);
+}
+
+function addItem(key){
+    if(stored()>=state.capacity) return false;
+    state.items[key] = (state.items[key] || 0) + 1;
+    return true;
 }
 
 function timeLeft(plot){
