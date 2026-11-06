@@ -48,6 +48,7 @@ function render(){
             <small>${c.seedCost}🪙 ; ${c.time}s</small>
         </div>
     `).join('');
+    document.getElementById('coins').textContent = state.coins;
     document.getElementById('barn').textContent = stored() + ' / ' + state.capacity;
     const itemsEl = document.getElementById('items');
     itemsEl.innerHTML = '';
@@ -65,16 +66,11 @@ function render(){
         one.onpointerdown = () => sell(key, false);
         const all = document.createElement('button');
         all.textContent = 'Sell all';
-        all.onpointerdown = () => sell(key, false);
+        all.onpointerdown = () => sell(key, true);
         row.appendChild(one);
         row.appendChild(all);
         itemsEl.appendChild(row);
     })
-    Object.entries(state.items).forEach(([key, count]) => {
-        const row = document.createElement('div');
-        row.textContent = CROPS[key].emoji + ' ' + CROPS[key].name + ' x' + count;
-        itemsEl.appendChild(row);
-    });
     fieldEl.innerHTML = ``;
     state.plots.forEach((plot, i) =>{
         const el = document.createElement('div');
