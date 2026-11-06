@@ -27,6 +27,14 @@ function addItem(key){
     return true;
 }
 
+function sell(key, all){
+    const n = all ? state.items[key] : 1;
+    state.items[key] -= n;
+    if (state.items[key] <= 0) delete state.items[key];
+    state.coins += CROPS[key].price * n;
+    render();
+}
+
 function timeLeft(plot){
     const crop = CROPS[plot.crop]; 
     return crop.time - (Date.now() - plot.plantedAt) / 1000;
@@ -40,6 +48,33 @@ function render(){
             <small>${c.seedCost}🪙 ; ${c.time}s</small>
         </div>
     `).join('');
+    document.getElementById('barn').textContent = stored() + ' / ' + state.capacity;
+    const itemsEl = document.getElementById('items');
+    itemsEl.innerHTML = '';
+    const keys = Object.keys(state.items);
+    if (keys.length === 0){
+        itemsEl.textContent = "Barn is empty";
+    }
+
+    keys.forEach(key => {
+        const c = CROPS[key];
+        const row = document.createElement('div');
+        row.textContent = c.emoji + ' ' + c.name + ' x' + state.items[key] + ' ';
+        const one = document.createElement('button');
+        one.textContent = 'Sell 1 (' + c.price + '🪙)';
+        one.onpointerdown = () => sell(key, false);
+        const all = document.createElement('button');
+        all.textContent = 'Sell all';
+        all.onpointerdown = () => sell(key, false);
+        row.appendChild(one);
+        row.appendChild(all);
+        itemsEl.appendChild(row);
+    })
+    Object.entries(state.items).forEach(([key, count]) => {
+        const row = document.createElement('div');
+        row.textContent = CROPS[key].emoji + ' ' + CROPS[key].name + ' x' + count;
+        itemsEl.appendChild(row);
+    });
     fieldEl.innerHTML = ``;
     state.plots.forEach((plot, i) =>{
         const el = document.createElement('div');
@@ -76,8 +111,11 @@ function tapPlot(i){
         state.coins -= crop.seedCost;
         state.plots[i] = { crop: state.selected, plantedAt: Date.now() };
     } else if (timeLeft(plot) <= 0){
-        state.plots[i] = null;
-        state.coins += CROPS[plot.crop].price;
+        // state.plots[i] = null;
+        // state.coins += CROPS[plot.crop].price;
+        if (addItem(plot.crop)){
+            state.plots[i] = null;
+        }
     }
     render();
 }
