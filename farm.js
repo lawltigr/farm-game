@@ -1,5 +1,6 @@
 const state = {
     coins: 20,
+    xp: 0,
     selected: 'carrot',
     items: {},
     capacity: 10,
@@ -7,12 +8,13 @@ const state = {
 };
 const fieldEl = document.getElementById('field');
 const CROPS = {
-    wheat: { name: 'Wheat', emoji: '🌾', time: 10, price: 2, seedCost: 1 },
-    corn: { name: "Corn", emoji: '🌽', time: 20, price: 5, seedCost: 2 },
-    carrot: { name: 'Carrot', emoji: '🥕', time: 30, price: 8, seedCost: 3 },
+    wheat: { name: 'Wheat', emoji: '🌾', time: 10, price: 2, seedCost: 1, lvl: 1, xp: 1 },
+    corn: { name: "Corn", emoji: '🌽', time: 20, price: 5, seedCost: 2, lvl: 2, xp: 3 },
+    carrot: { name: 'Carrot', emoji: '🥕', time: 30, price: 8, seedCost: 3, lvl: 3, xp: 5 },
 };
 
 function selectSeed(key){
+    if (CROPS[key].lvl > level()) return;
     state.selected = key;
     render();
 }
@@ -25,6 +27,10 @@ function addItem(key){
     if(stored()>=state.capacity) return false;
     state.items[key] = (state.items[key] || 0) + 1;
     return true;
+}
+
+function level(){
+    return Math.floor(Math.sqrt(state.xp / 8)) + 1;
 }
 
 function sell(key, all){
@@ -41,15 +47,18 @@ function timeLeft(plot){
 }
 
 function render(){
-    document.getElementById('seeds').innerHTML = Object.entries(CROPS).map(([key, c]) =>
-    `
+    document.getElementById('seeds').innerHTML = Object.entries(CROPS).map(([key, c]) =>{
+        const locked = c.lvl > level();
+        return `
         <div class="seed ${state.selected === key ? 'sel' : ''}" onclick="selectSeed('${key}')">
             ${c.emoji} ${c.name} <br>
             <small>${c.seedCost}🪙 ; ${c.time}s</small>
         </div>
-    `).join('');
+    `}).join('');
     document.getElementById('coins').textContent = state.coins;
     document.getElementById('barn').textContent = stored() + ' / ' + state.capacity;
+    document.getElementById('lvl').textContent = level();
+    document.getElementById('xp').textContent = state.xp;
     const itemsEl = document.getElementById('items');
     itemsEl.innerHTML = '';
     const keys = Object.keys(state.items);
@@ -103,6 +112,7 @@ function tapPlot(i){
     const plot = state.plots[i];
     if (!plot){
         const crop = CROPS[state.selected];
+        if (crop.lvl > level()) return;
         if (state.coins < crop.seedCost) return;
         state.coins -= crop.seedCost;
         state.plots[i] = { crop: state.selected, plantedAt: Date.now() };
@@ -110,11 +120,21 @@ function tapPlot(i){
         // state.plots[i] = null;
         // state.coins += CROPS[plot.crop].price;
         if (addItem(plot.crop)){
+            const before = level();
+            state.xp + CROPS[plot.crop].xp;
+            if(level()> before){
+                showMSG('🎉 Level ' + level() + '!');
+            }
             state.plots[i] = null;
         }
     }
     render();
 }
 
+function showMsg(text){
+    const el = document.getElementById('msg');
+    el.textContent = text;
+    setTimeout(() => el.textContent = '', 2500);
+}
 
 setInterval(render, 1000);
