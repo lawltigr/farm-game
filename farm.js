@@ -4,6 +4,7 @@ const state = {
     selected: 'carrot',
     items: {},
     capacity: 10,
+    orders: [],
     plots: [null, null, null, null, null, null, null, null, null, null, null, null]
 };
 const fieldEl = document.getElementById('field');
@@ -31,6 +32,49 @@ function addItem(key){
 
 function level(){
     return Math.floor(Math.sqrt(state.xp / 8)) + 1;
+}
+
+function genOrder(){
+    const pool = Object.keys(CROPS).filter(k=> CROPS[k].lvl <= level());
+    const need = {};
+    const kinds = 1 + Math.floor(Math.random()*2);
+    for (let j = 0; j < kinds; j++){
+        const key = pool[Math.floor(Math.random()*pool.length)];
+        need[key] = (need[key] || 0) + 1 + Math.floor(Math.random()*3);
+    }
+    let value = 0, qty = 0;
+    for (const key in need){
+        value += CROPS[key].price * need[key];
+        qty += need[key];
+    }
+    return {need, coins: Math.ceil(value * 1.4), xp: qty * 2};
+}
+
+function ensureOrders(){
+    while (state.orders.length < 3) state.orders.push(genOrder());
+}
+
+function addXp(n){
+    const before = level();
+    state.xp += n;
+    if (level() > before) showMSG('🎉 Level ' + level() + '!');
+}
+
+function canDeliver(o){
+    return Object.keys(o.need).every(k => (state.items[k] || 0) >= o.need[k]);
+}
+
+function delivery(i){
+    const o = state.orders[i];
+    if (!canDeliver(o)) return;
+    for (const key in o.need){
+        state.items[key] -= o.need[key];
+        if (state.items[key] <= 0) delete state.items[key];
+    }
+    state.coins += o.coins;
+    addXp(o.xp);
+    state.orders[i] = genOrder();
+    render();
 }
 
 function sell(key, all){
@@ -65,6 +109,21 @@ function render(){
     if (keys.length === 0){
         itemsEl.textContent = "Barn is empty";
     }
+
+    const ordersEl = document.getElementById('orders');
+    ordersEl.innerHTML = '';
+    state.orders.forEach((o,i) => {
+        const box = document.createElement('div');
+        box.className = 'order';
+        const need = Object.entries(o.need).map(([k,n]) => CROPS[k].emoji + ' ' + (state.items[k] || 0) + '/' + n).join(' ');
+        box.textContent = need + ' --> +' + o.coins + '🪙 +' + o.xp + '⭐️';
+        const btn = document.createElement('button');
+        btn.textContent = 'Deliver';
+        btn.disabled = !canDeliver(o);
+        btn.onpointerdown = () => delivery(i);
+        box.appendChild(btn);
+        ordersEl.appendChild(box);
+    })
 
     keys.forEach(key => {
         const c = CROPS[key];
@@ -120,21 +179,19 @@ function tapPlot(i){
         // state.plots[i] = null;
         // state.coins += CROPS[plot.crop].price;
         if (addItem(plot.crop)){
-            const before = level();
-            state.xp + CROPS[plot.crop].xp;
-            if(level()> before){
-                showMSG('🎉 Level ' + level() + '!');
-            }
+            addXp(CROPS[plot.crop].xp);
             state.plots[i] = null;
         }
     }
     render();
 }
 
-function showMsg(text){
+function showMSG(text){
     const el = document.getElementById('msg');
     el.textContent = text;
     setTimeout(() => el.textContent = '', 2500);
 }
 
+ensureOrders();
+render();
 setInterval(render, 1000);

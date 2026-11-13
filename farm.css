@@ -64,6 +64,15 @@ body{
     background: #ffeebf;
 }
 
+.order{
+    background: #fff7dc;
+    border: 2px solid #d9c48a;
+    border-radius: 10px;
+    padding: 6px 10px;
+    margin: 6px auto;
+    max-width: 420px;
+}
+
 @keyframes jump {
     50%{
         transform: translateY(-5px);
