@@ -14,6 +14,40 @@ const CROPS = {
     carrot: { name: 'Carrot', emoji: '🥕', time: 30, price: 8, seedCost: 3, lvl: 3, xp: 5 },
 };
 
+const GOODS = {
+    ...CROPS,
+    egg: { ame: 'Egg', emoji: '🥚', price: 6 }
+};
+
+function takeItem(key, n){
+    state.items[key] = (state.items[key] || 0) - n;
+    if (state.items[key] <= 0) delete state.items[key];
+}
+
+function coopLeft(){
+    return COOP_TIME - (Date.now() - state.coop.at) / 1000;
+}
+
+function tapCoop(){
+    const c = state.coop;
+    if (c.status === 'empty'){
+        if((state.items[COOP_FEED] || 0) < 1){
+            showMSG('Need ' + GOODS[COOP_FEED].emoji + ' to feed');
+            return;
+        }
+        takeItem(COOP_FEED, 1);
+        c.status = 'laying';
+        c.at = Date.now();
+    }
+    else if (c.status === 'laying' && coopLeft() <= 0){
+        if (addItem('egg')){
+            addXp(2);
+            c.status = 'empty';
+        }
+    }
+    render();
+}
+
 function selectSeed(key){
     if (CROPS[key].lvl > level()) return;
     state.selected = key;
