@@ -1,13 +1,45 @@
-const state = {
-    coins: 20,
-    xp: 0,
-    selected: 'carrot',
-    items: {},
-    capacity: 10,
-    orders: [],
-    coop: {status: 'empty', at: 0},
-    plots: [null, null, null, null, null, null, null, null, null, null, null, null]
+const SAVE_KEY = 'farm_save_v1';
+function defaultState() {
+    return{
+        coins: 20,
+        xp: 0,
+        selected: 'wheat',
+        items: {},
+        capacity: 10,
+        orders: [],
+        coop: {status: 'empty', at: 0},
+        plots: [null, null, null, null, null, null, null, null, null, null, null, null]
+    }
 };
+function load(){
+    try{
+        const raw = localStorage.getItem(SAVE_KEY);
+        if (raw) return {...defaultState(), ...JSON.parse(raw)};
+    }
+    catch (e){
+        console.warn('Save is broken, starting fresh', e);
+    }
+    return defaultState();
+}
+document.getElementById('reset').onclick = () => {
+    if (confirm('Delete all progress?')){
+        resetting = true;
+        localStorage.removeItem(SAVE_KEY);
+        location.reload();
+    }
+};
+const state = load();
+let resetting = false;
+function save(){
+    if(resetting){
+        return;
+        try {
+            localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+        } catch (e){
+            console.warn('Cannot save', e);
+        }
+    }
+}
 const COOP_TIME = 20;
 const COOP_FEED = 'wheat';
 const fieldEl = document.getElementById('field');
@@ -82,7 +114,7 @@ function genOrder(){
     }
     let value = 0, qty = 0;
     for (const key in need){
-        value += CROPS[key].price * need[key];
+        value += GOODS[key].price * need[key];
         qty += need[key];
     }
     return {need, coins: Math.ceil(value * 1.4), xp: qty * 2};
@@ -219,6 +251,7 @@ function render(){
         el.onclick = () => tapPlot(i);
         fieldEl.appendChild(el);
     });
+    save();
 }
 
 function tapPlot(i){
@@ -248,4 +281,6 @@ function showMSG(text){
 
 ensureOrders();
 render();
+const readyCount = state.plots.filter(p => p && timeLeft(p) <= 0).length;
+if (readyCount > 0) showMSG('🌾 ' + readyCount + ' crops are ready!');
 setInterval(render, 1000);
