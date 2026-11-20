@@ -159,6 +159,23 @@ function render(){
         ordersEl.appendChild(box);
     })
 
+    const coopEl = document.getElementById('coop');
+    coopEl.innerHTML = '';
+    const c = state.coop;
+    const btn = document.createElement('button');
+    let label;
+    if(c.status === 'empty'){
+        label = 'Feed (1 ' + GOODS[COOP_FEED].emoji + ')';
+    } else if(coopLeft()> 0){
+        label = '🐔 Laying...' + Math.ceiil(coopLeft()) + 's';
+        btn.disabled = true;
+    } else{
+        label = '🥚 Collect egg';
+    }
+    btn.textContent = label;
+    btn.onpointerdown = tapCoop;
+    coopEl.appendChild(btn);
+
     keys.forEach(key => {
         const c = CROPS[key];
         const row = document.createElement('div');
