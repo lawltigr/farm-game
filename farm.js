@@ -5,8 +5,11 @@ const state = {
     items: {},
     capacity: 10,
     orders: [],
+    coop: {status: 'empty', at: 0},
     plots: [null, null, null, null, null, null, null, null, null, null, null, null]
 };
+const COOP_TIME = 20;
+const COOP_FEED = 'wheat';
 const fieldEl = document.getElementById('field');
 const CROPS = {
     wheat: { name: 'Wheat', emoji: '🌾', time: 10, price: 2, seedCost: 1, lvl: 1, xp: 1 },
@@ -16,7 +19,7 @@ const CROPS = {
 
 const GOODS = {
     ...CROPS,
-    egg: { ame: 'Egg', emoji: '🥚', price: 6 }
+    egg: { name: 'Egg', emoji: '🥚', price: 6 }
 };
 
 function takeItem(key, n){
@@ -70,6 +73,7 @@ function level(){
 
 function genOrder(){
     const pool = Object.keys(CROPS).filter(k=> CROPS[k].lvl <= level());
+    if (level() >= 2) pool.push('egg');
     const need = {};
     const kinds = 1 + Math.floor(Math.random()*2);
     for (let j = 0; j < kinds; j++){
@@ -113,9 +117,8 @@ function delivery(i){
 
 function sell(key, all){
     const n = all ? state.items[key] : 1;
-    state.items[key] -= n;
-    if (state.items[key] <= 0) delete state.items[key];
-    state.coins += CROPS[key].price * n;
+    takeItem(key, n);
+    state.coins += GOODS[key].price * n;
     render();
 }
 
@@ -128,9 +131,9 @@ function render(){
     document.getElementById('seeds').innerHTML = Object.entries(CROPS).map(([key, c]) =>{
         const locked = c.lvl > level();
         return `
-        <div class="seed ${state.selected === key ? 'sel' : ''}" onclick="selectSeed('${key}')">
-            ${c.emoji} ${c.name} <br>
-            <small>${c.seedCost}🪙 ; ${c.time}s</small>
+        <div class="seed ${state.selected === key ? 'sel' : ''} ${locked ? 'lock': ''}" onclick="selectSeed('${key}')">
+            ${locked ? '🔒' : c.emoji} ${c.name} <br>
+            <small>${locked ? 'Level ' + c.lvl : c.seedCost + '🪙 ;' + c.time + 's'}</small>
         </div>
     `}).join('');
     document.getElementById('coins').textContent = state.coins;
@@ -149,7 +152,7 @@ function render(){
     state.orders.forEach((o,i) => {
         const box = document.createElement('div');
         box.className = 'order';
-        const need = Object.entries(o.need).map(([k,n]) => CROPS[k].emoji + ' ' + (state.items[k] || 0) + '/' + n).join(' ');
+        const need = Object.entries(o.need).map(([k,n]) => GOODS[k].emoji + ' ' + (state.items[k] || 0) + '/' + n).join(' ');
         box.textContent = need + ' --> +' + o.coins + '🪙 +' + o.xp + '⭐️';
         const btn = document.createElement('button');
         btn.textContent = 'Deliver';
@@ -167,7 +170,7 @@ function render(){
     if(c.status === 'empty'){
         label = 'Feed (1 ' + GOODS[COOP_FEED].emoji + ')';
     } else if(coopLeft()> 0){
-        label = '🐔 Laying...' + Math.ceiil(coopLeft()) + 's';
+        label = '🐔 Laying...' + Math.ceil(coopLeft()) + 's';
         btn.disabled = true;
     } else{
         label = '🥚 Collect egg';
@@ -177,7 +180,7 @@ function render(){
     coopEl.appendChild(btn);
 
     keys.forEach(key => {
-        const c = CROPS[key];
+        const c = GOODS[key];
         const row = document.createElement('div');
         row.textContent = c.emoji + ' ' + c.name + ' x' + state.items[key] + ' ';
         const one = document.createElement('button');
