@@ -32,13 +32,13 @@ const state = load();
 let resetting = false;
 function save(){
     if(resetting){
-        return;
-        try {
-            localStorage.setItem(SAVE_KEY, JSON.stringify(state));
-        } catch (e){
-            console.warn('Cannot save', e);
-        }
+        return;}
+    try {
+        localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    } catch (e){
+        console.warn('Cannot save', e);
     }
+    
 }
 const COOP_TIME = 20;
 const COOP_FEED = 'wheat';
